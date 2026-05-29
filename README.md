@@ -1,60 +1,24 @@
-# Task Manager CLI
+# Log Analyzer
 
-A simple command-line task manager written in C++17. Tasks are stored locally in a CSV file. No external libraries required.
+A simple C++ CLI tool that reads a `.log` file, filters ERROR and WARNING entries, validates timestamps and IP addresses, and prints a summary.
 
-## Features
-
-- Add tasks with a priority level (low / medium / high)
-- List all tasks
-- Mark a task as done
-- Delete a task
-- Filter tasks by priority
-
-## Build
+## Build & run
 
 ```bash
-g++ -std=c++17 -o tasks main.cpp Task.cpp TaskManager.cpp Storage.cpp
+g++ -o log_analyzer main.cpp
+./log_analyzer sample.log
 ```
 
-## Usage
-
-```bash
-./tasks add "Buy milk" --priority low
-./tasks add "Write tests"              # default priority: medium
-./tasks list
-./tasks done 1
-./tasks filter --priority low
-./tasks delete 2
-```
-
-## Example output
+## Log format
 
 ```
-[ ] #1 [high] Write unit tests
-[x] #2 [low]  Buy milk
-[ ] #3 [medium] Review PR
+YYYY-MM-DD HH:MM:SS [LEVEL] (IP) message
 ```
 
-## Project structure
+IP is optional. Level can be `INFO`, `WARNING`, or `ERROR`.
 
-```
-.
-├── main.cpp          # CLI interface, parses commands and flags
-├── Task.h / .cpp     # Data model, CSV serialization
-├── Storage.h / .cpp  # File read/write
-├── TaskManager.h / .cpp  # Business logic (add, done, delete, filter)
-├── sample.log        # Example input
-└── test.sh           # Shell-based test suite
-```
 
 ## Tests
-
 ```bash
 chmod +x test.sh && ./test.sh
 ```
-
-## Tech
-
-- C++17
-- STL only — `std::vector`, `std::fstream`, `std::stringstream`
-- No external dependencies

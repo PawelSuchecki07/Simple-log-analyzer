@@ -1,39 +1,53 @@
 #!/bin/bash
-
+ 
 PASS=0
 FAIL=0
-
+ 
 check() {
-    local description=$1
-    local expected=$2
-    local actual=$3
-
+    local test_name=$1
+    local input=$2
+    local expected=$3
+ 
+    echo "$input" > /tmp/test_input.log
+    actual=$(./log_analyzer /tmp/test_input.log)
+ 
     if echo "$actual" | grep -q "$expected"; then
-        echo "[PASS] $description"
+        echo "PASS: $test_name"
         PASS=$((PASS + 1))
     else
-        echo "[FAIL] $description"
-        echo "       expected: $expected"
-        echo "       got:      $actual"
+        echo "FAIL: $test_name"
+        echo "  expected to find: $expected"
         FAIL=$((FAIL + 1))
     fi
 }
-
-rm -f tasks.csv
-
-# Test 1 — add task
-actual=$(./tasks add "Buy milk" --priority low 2>&1)
-check "add task" "Added task #1" "$actual"
-
-# Test 2 — mark task as done
-./tasks done 1 > /dev/null 2>&1
-check "mark done" "\[x\]" "$(./tasks list 2>&1)"
-
-# Test 3 — delete task
-./tasks delete 1 > /dev/null 2>&1
-check "delete task" "No tasks" "$(./tasks list 2>&1)"
-
-rm -f tasks.csv
-
+ 
+check "valid ERROR detected" \
+    "2024-01-15 08:25:30 [ERROR] (192.168.1.10) something broke" \
+    "Errors: 1"
+ 
+check "valid WARNING detected" \
+    "2024-01-15 08:25:30 [WARNING] (10.0.0.1) high cpu usage" \
+    "Warnings: 1"
+ 
+check "INFO line is ignored" \
+    "2024-01-15 08:25:30 [INFO] (10.0.0.1) all good" \
+    "Errors: 0"
+ 
+check "invalid IP flagged as malformed" \
+    "2024-01-15 08:25:30 [ERROR] (999.0.0.1) bad ip" \
+    "Malformed: 1"
+ 
+check "invalid timestamp flagged as malformed" \
+    "2024-01-15 99:99:99 [ERROR] (10.0.0.1) bad time" \
+    "Malformed: 1"
+ 
+check "entry without IP still works" \
+    "2024-01-15 08:25:30 [WARNING] no ip in this line" \
+    "Warnings: 1"
+ 
+check "empty file gives zero counts" \
+    "" \
+    "Errors: 0"
+ 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
