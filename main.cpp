@@ -1,108 +1,75 @@
 #include <iostream>
-#include <fstream>
 #include <string>
+#include "TaskManager.h"
 
-using namespace std;
-
-bool isValidTimestamp(string ts) {
-    if (ts.length() != 19) return false;
-    // check separators: YYYY-MM-DD HH:MM:SS
-    if (ts[4] != '-' || ts[7] != '-' || ts[10] != ' ' || ts[13] != ':' || ts[16] != ':')
-        return false;
-    // check hours, minutes, seconds are in valid range
-    int hours = stoi(ts.substr(11, 2));
-    int mins  = stoi(ts.substr(14, 2));
-    int secs  = stoi(ts.substr(17, 2));
-    if (hours > 23 || mins > 59 || secs > 59) return false;
-    return true;
+void printHelp() {
+    std::cout << "Usage:\n";
+    std::cout << "  ./tasks add <title> [--priority low|medium|high]\n";
+    std::cout << "  ./tasks list\n";
+    std::cout << "  ./tasks filter --priority low|medium|high\n";
+    std::cout << "  ./tasks done <id>\n";
+    std::cout << "  ./tasks delete <id>\n";
 }
 
-bool isValidIP(string ip) {
-    int dots = 0;
-    string part = "";
-    for (int i = 0; i <= ip.length(); i++) {
-        if (i == ip.length() || ip[i] == '.') {
-            if (part.empty()) return false;
-            int val = stoi(part);
-            if (val > 255) return false;
-            part = "";
-            dots++;
-        } else {
-            part += ip[i];
-        }
+std::string getFlag(int argc, char* argv[], const std::string& flag) {
+    for (int i = 1; i < argc - 1; i++) {
+        if (std::string(argv[i]) == flag)
+            return std::string(argv[i + 1]);
     }
-    return dots == 4;
+    return "";
 }
 
 int main(int argc, char* argv[]) {
-    string filename = "sample.log";
-    if (argc >= 2) filename = argv[1];
-
-    ifstream file(filename);
-
-    if (!file.is_open()) {
-        cout << "Cannot open file!" << endl;
+    if (argc < 2) {
+        printHelp();
         return 1;
     }
 
-    int errors = 0;
-    int warnings = 0;
-    int malformed = 0;
-    string line;
+    TaskManager manager("tasks.csv");
+    std::string command = argv[1];
 
-    cout << "=== LOG ANALYZER ===" << endl;
-    cout << endl;
-
-    while (getline(file, line)) {
-        if (line.length() == 0) continue;
-
-        string timestamp = line.substr(0, 19);
-        bool goodTimestamp = isValidTimestamp(timestamp);
-
-        bool isError = false;
-        bool isWarning = false;
-
-        if (line.find("[ERROR]") != string::npos) isError = true;
-        if (line.find("[WARNING]") != string::npos) isWarning = true;
-
-        bool hasIP = false;
-        bool goodIP = true;
-        string ip = "";
-
-        int start = line.find("(");
-        int end = line.find(")");
-        if (start != string::npos && end != string::npos) {
-            hasIP = true;
-            ip = line.substr(start + 1, end - start - 1);
-            goodIP = isValidIP(ip);
+    if (command == "add") {
+        if (argc < 3) {
+            std::cout << "Error: missing task title\n";
+            return 1;
         }
+        std::string title = argv[2];
+        std::string priorityStr = getFlag(argc, argv, "--priority");
+        Priority priority = Priority::medium;
+        if (!priorityStr.empty())
+            priority = stringToPriority(priorityStr);
+        manager.add(title, priority);
 
-        if (isError || isWarning) {
-            if (!goodTimestamp || !goodIP) {
-                cout << "[MALFORMED] " << line << endl;
-                if (!goodTimestamp) cout << "  -> bad timestamp" << endl;
-                if (!goodIP) cout << "  -> bad IP: " << ip << endl;
-                malformed++;
-            } else if (isError) {
-                cout << "[ERROR] " << timestamp;
-                if (hasIP) cout << " (" << ip << ")";
-                cout << endl;
-                errors++;
-            } else {
-                cout << "[WARNING] " << timestamp;
-                if (hasIP) cout << " (" << ip << ")";
-                cout << endl;
-                warnings++;
-            }
+    } else if (command == "list") {
+        manager.listAll();
+
+    } else if (command == "filter") {
+        std::string priorityStr = getFlag(argc, argv, "--priority");
+        if (priorityStr.empty()) {
+            std::cout << "Error: missing --priority flag\n";
+            return 1;
         }
+        manager.listByPriority(stringToPriority(priorityStr));
+
+    } else if (command == "done") {
+        if (argc < 3) {
+            std::cout << "Error: missing task id\n";
+            return 1;
+        }
+        manager.markDone(std::stoi(argv[2]));
+
+    } else if (command == "delete") {
+        if (argc < 3) {
+            std::cout << "Error: missing task id\n";
+            return 1;
+        }
+        manager.remove(std::stoi(argv[2]));
+
+    } else {
+        std::cout << "Unknown command: " << command << "\n";
+        printHelp();
+        return 1;
     }
 
-    cout << endl;
-    cout << "--- Summary ---" << endl;
-    cout << "Errors: " << errors << endl;
-    cout << "Warnings: " << warnings << endl;
-    cout << "Malformed: " << malformed << endl;
-
-    file.close();
     return 0;
 }
