@@ -16,7 +16,3 @@ YYYY-MM-DD HH:MM:SS [LEVEL] (IP) message
 ```
 
 IP is optional. Level can be `INFO`, `WARNING`, or `ERROR`.
-
-## Preview
-
-![Log Analyzer output](screenshot.png)
