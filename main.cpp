@@ -34,8 +34,11 @@ bool isValidIP(string ip) {
     return dots == 4;
 }
 
-int main() {
-    ifstream file("sample.log");
+int main(int argc, char* argv[]) {
+    string filename = "sample.log";
+    if (argc >= 2) filename = argv[1];
+
+    ifstream file(filename);
 
     if (!file.is_open()) {
         cout << "Cannot open file!" << endl;
