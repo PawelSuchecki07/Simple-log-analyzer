@@ -1,0 +1,11 @@
+2026-05-31 08:12:05 [INFO] (192.168.1.15) User 'admin' logged in successfully.
+2026-05-31 08:15:22 [INFO] Connection established with database server.
+2026-05-31 08:20:00 [WARNING] (10.0.0.5) Disk space is reaching 85% capacity on /dev/sda1.
+2026-05-31 08:22:14 [INFO] (192.168.1.102) File 'report.pdf' uploaded by user 'john_doe'.
+2026-05-31 08:30:45 [ERROR] (172.16.254.1) Failed to connect to payment gateway API. Timeout after 30s.
+2026-05-31 08:31:00 [INFO] Retrying connection to payment gateway...
+2026-05-31 08:31:05 [ERROR] (172.16.254.1) Database transaction rolled back due to dead lock.
+2026-05-31 08:45:12 [WARNING] Unrecognized header received in HTTP request, skipping.
+2026-05-31 09:00:01 [INFO] Scheduled backup completed successfully.
+BAD_DATE_HERE 99:99:99 [INVALID] This line is corrupted to test your parser validation.
+2026-05-31 09:15:30 [ERROR] (192.168.1.50) Unauthorized access attempt detected on /admin/settings.
